@@ -333,6 +333,240 @@ model_price_tbl <- left_join(bike_name_tbl, bike_price_tbl)%>%
 select(name, price)
 model_price_tbl
 ```
+
+
+
+# Challenge : Data Visualization
+
+Last compiled: `r Sys.Date()`
+
+## Problem Statement :
+
+Patents play a critical role in incentivizing innovation, without which we wouldn’t have much of the technology we rely on everyday. What does your iPhone, Google’s PageRank algorithm, and a butter substitute called Smart Balance all have in common?
+
+…They all probably wouldn’t be here if not for patents. A patent provides its owner with the ability to make money off of something that they invented, without having to worry about someone else copying their technology. Think Apple would spend millions of dollars developing the iPhone if Samsung could just come along and rip it off? Probably not.
+
+In the Patents_DB_dictionary_bulk_downloads.xlsx file you will find information about the datatypes for each column of the tables. This will help you to create the “recipe” to import the data.
+
+To speed up your processing, you can select col_skip() as a “datatype” to only read the columns of the data into R, that you will need for your analysis.
+
+Answer the following questions with that data:
+
+1. Patent Dominance: What US company / corporation has the most patents? List the 10 US companies with the most assigned/granted patents.
+
+```{r}
+
+library(vroom)
+library(data.table)
+library(tidyverse)
+col_types <- list(
+  id = col_character(),
+  type = col_character(),
+  name_first = col_character(),
+  name_last = col_character(),
+  organization = col_character()
+)
+
+assignee_tbl <- vroom(
+  file       = "C:/Users/MANOJ DEVARAJU/Desktop/R_Submission_files/Task_3_data/assignee.tsv", 
+  delim      = "\t", 
+  col_types  = col_types,
+  na         = c("", "NA", "NULL")
+)
+
+col_types <- list(
+  patent_id = col_character(),
+  assignee_id = col_character(),
+  location_id = col_character()
+)
+
+patent_assignee_tbl <- vroom(
+  file       = "C:/Users/MANOJ DEVARAJU/Desktop/R_Submission_files/Task_3_data/patent_assignee.tsv", 
+  delim      = "\t", 
+  col_types  = col_types,
+  na         = c("", "NA", "NULL")
+)
+
+Join_tbl <- merge(patent_assignee_tbl,assignee_tbl, by.x = "assignee_id", by.y = "id") 
+
+num_tbl<- Join_tbl%>%
+  select(patent_id,organization)%>% 
+  count(organization)%>%
+  group_by(organization) 
+
+final_tbl <- num_tbl %>%
+  select (organization,n)%>%
+  arrange(desc(n))
+
+#List of top ten companies with most assigned/granted patents.
+
+head(final_tbl,10)
+
+
+
+```
+
+
+## Problem Statement :
+
+"2. Recent patent acitivity: What US company had the most patents granted in 2019? List the top 10 companies with the most new granted patents for 2019."
+
+```{r}
+
+# List the top 10 companies with the most new granted patents for 2019.
+library(vroom)
+library(data.table)
+library(tidyverse)
+library(lubridate)
+
+col_types <- list(
+  id = col_character(),
+  type = col_character(),
+  name_first = col_character(),
+  name_last = col_character(),
+  organization = col_character()
+)
+
+assignee_tbl <- vroom(
+  file       = "C:/Users/MANOJ DEVARAJU/Desktop/R_Submission_files/Task_3_data/assignee.tsv", 
+  delim      = "\t", 
+  col_types  = col_types,
+  na         = c("", "NA", "NULL")
+)
+
+col_types <- list(
+  patent_id = col_character(),
+  assignee_id = col_character(),
+  location_id = col_character()
+)
+
+patent_assignee_tbl <- vroom(
+  file       = "C:/Users/MANOJ DEVARAJU/Desktop/R_Submission_files/Task_3_data/patent_assignee.tsv", 
+  delim      = "\t", 
+  col_types  = col_types,
+  na         = c("", "NA", "NULL")
+)
+
+col_types <- list(
+  id = col_character(),
+  type = col_character(),
+  number = col_character(),
+  country = col_character(),
+  date = col_date("%Y-%m-%d"),
+  abstract = col_character(),
+  title = col_character(),
+  kind = col_character(),
+  num_claims = col_double(),
+  filename = col_character(),
+  withdrawn = col_character()
+)
+
+patent_tbl <- vroom(
+  file       = "C:/Users/MANOJ DEVARAJU/Desktop/R_Submission_files/Task_3_data/patent.tsv", 
+  delim      = "\t", 
+  col_types  = col_types,
+  na         = c("", "NA", "NULL")
+)
+
+Join_tbl <- merge(patent_assignee_tbl,assignee_tbl, by.x = "assignee_id", by.y = "id") 
+Join_1_tbl <- merge(patent_tbl,Join_tbl, by.x="id", by.y ="patent_id") 
+
+Filter_2019_tbl <- Join_1_tbl %>%
+  select("id", "date", "country","organization")%>%
+  filter(between(date,as.Date("2019-01-01"), as.Date("2020-01-01")))%>%
+  count(organization)%>%
+  group_by(organization)    
+
+
+
+Final_tbl <- Filter_2019_tbl %>%
+  select (organization,n)%>%
+  arrange(desc(n))
+
+#list of 10 organisation 
+
+head(Final_tbl,10)
+
+```
+
+
+
+
+## Problem Statement :
+
+"3. Innovation in Tech: What is the most innovative tech sector? For the top 10 companies (worldwide) with the most patents, what are the top 5 USPTO tech main classes?"
+
+
+```{r}
+# list of the top 10 companies (worldwide) with the most patents. The top 5 USPTO tech main classes
+library(vroom)
+library(data.table)
+library(tidyverse)
+library(lubridate)
+
+
+col_types <- list(
+  id = col_character(),
+  type = col_character(),
+  name_first = col_character(),
+  name_last = col_character(),
+  organization = col_character()
+)
+
+assignee_tbl <- vroom(
+  file       = "C:/Users/MANOJ DEVARAJU/Desktop/R_Submission_files/Task_3_data/assignee.tsv", 
+  delim      = "\t", 
+  col_types  = col_types,
+  na         = c("", "NA", "NULL")
+)
+
+col_types <- list(
+  patent_id = col_character(),
+  assignee_id = col_character(),
+  location_id = col_character()
+)
+
+patent_assignee_tbl <- vroom(
+  file       = "C:/Users/MANOJ DEVARAJU/Desktop/R_Submission_files/Task_3_data/patent_assignee.tsv", 
+  delim      = "\t", 
+  col_types  = col_types,
+  na         = c("", "NA", "NULL")
+)
+
+col_types <- list(
+  uuid = col_character(),
+  patent_id = col_character(),
+  mainclass_id = col_character(),
+  subclass_id = col_character(),
+  sequence = col_character()
+  
+)
+
+uspc_tbl <- vroom(
+  file       = "C:/Users/MANOJ DEVARAJU/Desktop/R_Submission_files/Task_3_data/uspc.tsv", 
+  delim      = "\t", 
+  col_types  = col_types,
+  na         = c("", "NA", "NULL")
+)
+
+Join_tbl <- merge(patent_assignee_tbl,assignee_tbl, by.x = "assignee_id", by.y = "id") 
+Join_tbl_3 <- merge(Join_tbl,uspc_tbl, by = "patent_id")
+
+
+
+final_tbl <- Join_tbl_3 %>%
+  select(patent_id,organization,mainclass_id,sequence)%>%
+  group_by(organization)%>%
+  sort(n, decreasing = TRUE)%>%
+  filter(sequence == 4)
+
+head(final_tbl,10)
+
+
+```
+
+
+
 # Challenge : Data Visualization
 
 Last compiled: `r Sys.Date()`
@@ -460,35 +694,3 @@ plot_data %>% ggplot()+
 
 ```
 
-# My first post
-
-Last compiled: `r Sys.Date()`
-
-Notice that whatever you define as a top level header, automatically gets put into the table of contents bar on the left. 
-
-## Second level header
-
-You can add more headers by adding more hashtags. These won't be put into the table of contents
-
-### third level header
-
-Here's an even lower level header
-
-# My second post (note the order)
-
-Last compiled: `r Sys.Date()`
-
-I'm writing this tutorial going from the top down. And, this is how it will be printed. So, notice the second post is second in the list. If you want your most recent post to be at the top, then make a new post starting at the top. If you want the oldest first, do, then keep adding to the bottom
-
-# Adding R stuff
-
-So far this is just a blog where you can write in plain text and serve your writing to a webpage. One of the main purposes of this lab journal is to record your progress learning R. The reason I am asking you to use this process is because you can both make a website, and a lab journal, and learn R all in R-studio. This makes everything really convenient and in the same place. 
-
-So, let's say you are learning how to make a histogram in R. For example, maybe you want to sample 100 numbers from a normal distribution with mean = 0, and standard deviation = 1, and then you want to plot a histogram. You can do this right here by using an r code block, like this:
-
-```{r}
-samples <- rnorm(100, mean=0, sd=1)
-hist(samples)
-```
-
-When you knit this R Markdown document, you will see that the histogram is printed to the page, along with the R code. This document can be set up to hide the R code in the webpage, just delete the comment (hashtag) from the cold folding option in the yaml header up top. For purposes of letting yourself see the code, and me see the code, best to keep it the way that it is. You'll learn that all of these things and more can be customized in each R code block.
